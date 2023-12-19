@@ -29,13 +29,23 @@ public class User implements UserDetails {
     )
     private long id;
     private String Display_name;
+    @Column(columnDefinition = "TEXT")
     private String Description;
     @Column(
             name = "username",
-            unique = true
+            unique = true,
+            nullable = false
     )
     private String username;
+    @Column(
+            nullable = false
+    )
     private String password;
+    @Column(
+            nullable = false,
+            unique = true
+    )
+    private String email;
     @Enumerated(EnumType.STRING)
     private Role role;
     @OneToMany (fetch = FetchType.LAZY,cascade = CascadeType.ALL, mappedBy = "from_user")
@@ -55,11 +65,12 @@ public class User implements UserDetails {
     public User() {
     }
 
-    public User(String display_name, String username, String password,Role role) {
+    public User(String display_name, String username, String password,Role role,String email) {
         Display_name = display_name;
         this.username =username;
         this.password =password;
         this.role=role;
+        this.email=email;
     }
 
 
@@ -184,5 +195,13 @@ public class User implements UserDetails {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

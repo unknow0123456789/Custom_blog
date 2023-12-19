@@ -19,6 +19,7 @@ public class Comment {
             generator = "comment_sq"
     )
     private long id;
+    @Column(columnDefinition = "TEXT")
     private String content;
     @ManyToOne
     @JoinColumn(name = "user_id")

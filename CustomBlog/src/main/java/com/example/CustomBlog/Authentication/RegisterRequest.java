@@ -4,11 +4,13 @@ public class RegisterRequest {
     private String Username;
     private String Password;
     private String DisplayName;
+    private String email;
 
-    public RegisterRequest(String username, String password, String displayName) {
+    public RegisterRequest(String username, String password, String displayName,String email) {
         Username = username;
         Password = password;
         DisplayName = displayName;
+        this.email=email;
     }
 
     public String getUsername() {
@@ -33,5 +35,13 @@ public class RegisterRequest {
 
     public void setDisplayName(String displayName) {
         DisplayName = displayName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

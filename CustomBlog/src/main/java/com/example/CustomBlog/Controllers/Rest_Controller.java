@@ -14,6 +14,7 @@ import com.example.CustomBlog.user.User_Repository;
 import com.example.CustomBlog.user.User_Services;
 import com.example.CustomBlog.web_information.Web_Information;
 import com.example.CustomBlog.web_information.Web_Information_Services;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +37,8 @@ public class Rest_Controller {
     private final Web_Information_Services webInformationServices;
     private final Feedback_Services feedbackServices;
 
+    private final EntityManager entityManager;
+
 
     public Rest_Controller(Authentication_Services authenticationServices,
                            Content_Services contentServices,
@@ -43,7 +46,9 @@ public class Rest_Controller {
                            User_Services userServices,
                            Comment_Services commentServices,
                            Web_Information_Services webInformationServices,
-                           Feedback_Services feedbackServices) {
+                           Feedback_Services feedbackServices,
+                           EntityManager entityManager
+    ) {
         this.authenticationServices = authenticationServices;
         this.contentServices = contentServices;
         this.categoryServices = categoryServices;
@@ -51,6 +56,7 @@ public class Rest_Controller {
         this.commentServices = commentServices;
         this.webInformationServices = webInformationServices;
         this.feedbackServices = feedbackServices;
+        this.entityManager=entityManager;
     }
 
     @GetMapping("/testing")
@@ -67,11 +73,18 @@ public class Rest_Controller {
 
     //Todo: Authenticate------
     @PostMapping(path = "/auth/register")
-    public ResponseEntity<AuthenticationResponse> register(
+    public ResponseEntity<Object> register(
             @RequestBody RegisterRequest registerRequest
     )
     {
-        return ResponseEntity.ok(authenticationServices.register(registerRequest));
+        try
+        {
+            return ResponseEntity.ok(authenticationServices.register(registerRequest));
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     @PostMapping(path = "/auth/adminRegister")
     public ResponseEntity<Object> adminRegister(
@@ -79,19 +92,32 @@ public class Rest_Controller {
             @RequestHeader(name = "Secret") String Secret
     )
     {
-        String password="vjpPro@102";
-        if(Secret.equals(password))
-            return ResponseEntity.ok(authenticationServices.adminRegister(registerRequest));
-        else
-            return ResponseEntity.badRequest().body("Wrong Secret input");
+        try
+        {
+            String password="vjpPro@102";
+            if(Secret.equals(password))
+                return ResponseEntity.ok(authenticationServices.adminRegister(registerRequest));
+            else
+                return ResponseEntity.badRequest().body("Wrong Secret input");
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping(path = "/auth/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(
+    public ResponseEntity<Object> authenticate(
             @RequestBody AuthenticationRequest authenticationRequest
     )
     {
-        return ResponseEntity.ok(authenticationServices.authenticate(authenticationRequest));
+        try {
+            return ResponseEntity.ok(authenticationServices.authenticate(authenticationRequest));
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     //Authenticate------
 
@@ -552,11 +578,31 @@ public class Rest_Controller {
             webInformationServices.Cleartable(user);
             feedbackServices.Cleartable(user);
             userServices.Cleartable(user);
+            dropAllTables();
             return ResponseEntity.ok().body("Clear");
         }
         catch (Exception e)
         {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void dropAllTables() {
+        List<String> tableNames = List.of(
+                "asset",
+                "web_information",
+                "content_category",
+                "feedback",
+                "category",
+                "comment",
+                "content",
+                "_users"
+        );
+
+        for (String tableName : tableNames) {
+            String sql = "DROP TABLE IF EXISTS " + tableName+" CASCADE";
+            entityManager.createNativeQuery(sql).executeUpdate();
         }
     }
 }

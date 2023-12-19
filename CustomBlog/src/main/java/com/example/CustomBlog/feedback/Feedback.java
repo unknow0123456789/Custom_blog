@@ -18,6 +18,7 @@ public class Feedback {
             generator = "feedback_sq"
     )
     private long id;
+    @Column(columnDefinition = "TEXT")
     private String content;
     @ManyToOne
     @JoinColumn(name = "user_id")

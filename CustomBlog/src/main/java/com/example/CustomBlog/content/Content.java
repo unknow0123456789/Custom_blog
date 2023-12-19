@@ -31,6 +31,8 @@ public class Content {
 
     private String title;
     private String description;
+
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @OneToMany (fetch = FetchType.LAZY,cascade = CascadeType.ALL, mappedBy = "from_content")

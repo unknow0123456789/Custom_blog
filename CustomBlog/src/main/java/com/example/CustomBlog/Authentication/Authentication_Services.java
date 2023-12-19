@@ -28,7 +28,8 @@ public class Authentication_Services {
                 registerRequest.getDisplayName(),
                 registerRequest.getUsername(),
                 passwordEncoder.encode(registerRequest.getPassword()),
-                Role.USER);
+                Role.USER,
+                registerRequest.getEmail());
         userRepository.save(user);
         String JWT=jwtServices.generateToken(user);
         return new AuthenticationResponse(JWT);
@@ -40,7 +41,8 @@ public class Authentication_Services {
                 registerRequest.getDisplayName(),
                 registerRequest.getUsername(),
                 passwordEncoder.encode(registerRequest.getPassword()),
-                Role.ADMIN);
+                Role.ADMIN,
+                registerRequest.getEmail());
         userRepository.save(user);
         String JWT=jwtServices.generateToken(user);
         return new AuthenticationResponse(JWT);
