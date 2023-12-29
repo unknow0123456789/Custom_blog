@@ -22,8 +22,14 @@ public class Asset {
         generator = "aset_sq"
     )
     private long id;
+    @Column(nullable = false)
     private String Name;
+    @Column(nullable = false)
+
     private String assetURL;
+    @Column(nullable = false)
+
+    private String tag;
     @ManyToOne
     @JoinColumn(name = "content_id",nullable = true)
     @JsonBackReference
@@ -85,9 +91,18 @@ public class Asset {
         this.from_webinfo = from_webinfo;
     }
 
-    public Asset(String name, String assetURL) {
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public Asset(String name, String assetURL, String tag) {
         Name = name;
         this.assetURL = assetURL;
+        this.tag=tag;
     }
 
     public Asset() {

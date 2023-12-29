@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 
 import com.example.CustomBlog.PutRequest;
 import com.example.CustomBlog.content.Content;
@@ -102,6 +103,11 @@ public class Category_Services {
         }
         content.getCategories().addAll(categories);
         return content;
+    }
+
+    public Optional<Category> SearchByName(String search)
+    {
+        return category_Repository.findByNameContainingIgnoreCase(search);
     }
 
     public void Cleartable(User user)

@@ -14,9 +14,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -61,6 +63,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         }
-        filterChain.doFilter(request,response);
+
+        MultiReadHttpServletRequest multiReadRequest = new MultiReadHttpServletRequest((HttpServletRequest) request);
+        System.out.println("\n\n\tDEBUG LOGGING:\n"+StreamUtils.copyToString(multiReadRequest.getInputStream(), Charset.defaultCharset())+"\n\n\n");
+
+        filterChain.doFilter(multiReadRequest,response);
     }
 }

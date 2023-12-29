@@ -30,15 +30,24 @@ public class Content_Services {
 
     public List<Content> SearchContentTitleContaining(String search)
     {
-        return content_Repository.findByTitleContainingIgnoreCase(search);
+        return content_Repository.findByTitleContainingIgnoreCaseAndPendingIsFalse(search);
     }
     public List<Content> GetTop30ByViews()
     {
-        return content_Repository.findTop30ByOrderByViewsDesc();
+        return content_Repository.findTop30ByPendingFalseOrderByViewsDesc();
     }
     public List<Content> GetTop30ByDate()
     {
-        return content_Repository.findTop30ByOrderByLastUploadDesc();
+        return content_Repository.findTop30ByPendingFalseOrderByLastUploadDesc();
+    }
+    public List<Content> GetAllPendingContent(User user)
+    {
+        hasAdminPrivileges(user);
+        return content_Repository.findByPendingIsTrue();
+    }
+    public List<Content> GetAllApprovedContent()
+    {
+        return content_Repository.findByPendingIsFalse();
     }
     public void Cleartable(User user)
     {
@@ -54,6 +63,8 @@ public class Content_Services {
                 asset.setFrom_content(newContent);
             }
         }
+        newContent.setPending(true);
+        newContent.setViews(0);
         newContent.setLastUpload(GetFormatCurrentDateTime());
         newContent.setAuthor(Author);
         Author.addPost(newContent);

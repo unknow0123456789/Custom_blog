@@ -19,9 +19,8 @@ public class Web_Information_Services {
     public Web_Information_Services(Web_Information_Repository webInformationRepository) {
         this.webInformationRepository = webInformationRepository;
     }
-    public List<Web_Information> GetFullWeb_Information(User user)
+    public List<Web_Information> GetFullWeb_Information()
     {
-        hasAdminPrivileges(user);
         return webInformationRepository.findAll();
     }
 
@@ -66,18 +65,16 @@ public class Web_Information_Services {
                 );
         webInformationRepository.deleteById(id);
     }
-    public Web_Information GetWeb_InformationByID(User user,long id)
+    public Web_Information GetWeb_InformationByID(long id)
     {
-        hasAdminPrivileges(user);
         return  webInformationRepository
                 .findById(id)
                 .orElseThrow(
                         ()->new IllegalStateException("Web information with id "+id+" does not exist in database!")
                 );
     }
-    public Web_Information GetWeb_InformationByName(User user,String name)
+    public Web_Information GetWeb_InformationByName(String name)
     {
-        hasAdminPrivileges(user);
         return  webInformationRepository
                 .findByName(name)
                 .orElseThrow(

@@ -4,6 +4,8 @@ import com.example.CustomBlog.asset.Asset;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 @Entity
@@ -72,5 +74,24 @@ public class Web_Information {
 
     public void setAssetList(List<Asset> assetList) {
         this.assetList = assetList;
+    }
+
+    public void addAssetList(ArrayList<LinkedHashMap> objectList)
+    {
+        List<Asset> assetList=new ArrayList<>();
+        for(LinkedHashMap linkedHashMap:objectList)
+        {
+            assetList.add(
+                    new Asset(
+                            (String)linkedHashMap.get("name"),
+                            (String)linkedHashMap.get("assetURL"),
+                            (String)linkedHashMap.get("tag")
+                    ));
+        }
+        for(Asset asset:assetList)
+        {
+            asset.setFrom_webinfo(this);
+        }
+        this.assetList.addAll(assetList);
     }
 }

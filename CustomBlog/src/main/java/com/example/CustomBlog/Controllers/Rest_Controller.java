@@ -1,5 +1,6 @@
 package com.example.CustomBlog.Controllers;
 import com.example.CustomBlog.Authentication.*;
+import com.example.CustomBlog.Mail_Services;
 import com.example.CustomBlog.PutRequest;
 import com.example.CustomBlog.category.Category;
 import com.example.CustomBlog.category.Category_Services;
@@ -10,7 +11,6 @@ import com.example.CustomBlog.content.Content_Services;
 import com.example.CustomBlog.feedback.Feedback;
 import com.example.CustomBlog.feedback.Feedback_Services;
 import com.example.CustomBlog.user.User;
-import com.example.CustomBlog.user.User_Repository;
 import com.example.CustomBlog.user.User_Services;
 import com.example.CustomBlog.web_information.Web_Information;
 import com.example.CustomBlog.web_information.Web_Information_Services;
@@ -38,6 +38,7 @@ public class Rest_Controller {
     private final Feedback_Services feedbackServices;
 
     private final EntityManager entityManager;
+    private final Mail_Services mailServices;
 
 
     public Rest_Controller(Authentication_Services authenticationServices,
@@ -47,7 +48,8 @@ public class Rest_Controller {
                            Comment_Services commentServices,
                            Web_Information_Services webInformationServices,
                            Feedback_Services feedbackServices,
-                           EntityManager entityManager
+                           EntityManager entityManager,
+                           Mail_Services mailServices
     ) {
         this.authenticationServices = authenticationServices;
         this.contentServices = contentServices;
@@ -57,12 +59,13 @@ public class Rest_Controller {
         this.webInformationServices = webInformationServices;
         this.feedbackServices = feedbackServices;
         this.entityManager=entityManager;
+        this.mailServices=mailServices;
     }
 
     @GetMapping("/testing")
     public String test()
     {
-        return "Server is running";
+        return "Server public is running";
     }
 
     @GetMapping("/test_token")
@@ -119,6 +122,55 @@ public class Rest_Controller {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+
+    @PutMapping(path = "/auth/changePassword")
+    public ResponseEntity<Object> ChangeUserPassword(
+            @RequestBody ChangePasswordRequest changePasswordRequest
+    )
+    {
+        try
+        {
+            return ResponseEntity.ok(authenticationServices.changeUserPassword(changePasswordRequest));
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping(path = "/auth/ForgotPassword")
+    public ResponseEntity<Object> ForgetPassword(
+            @RequestParam(name = "email") String email
+    )
+    {
+        try
+        {
+            authenticationServices.forgotPasswordRequest(userServices.GetUserByEmail(email));
+            return ResponseEntity.ok("A reset email have been sent to "+email+".");
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping(path = "/auth/ResetPassword")
+    public ResponseEntity<Object> ResetForgottenPassword(
+            @RequestBody ChangePasswordRequest changePasswordRequest
+    )
+    {
+        try
+        {
+            authenticationServices.resetForgottenPassword(changePasswordRequest);
+            return ResponseEntity.ok("Password changed");
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     //Authenticate------
 
     //Todo: Content------
@@ -143,6 +195,8 @@ public class Rest_Controller {
     {
         try
         {
+            Optional<Category> category=categoryServices.SearchByName(search);
+            if(category.isPresent()) return ResponseEntity.ok(category);
             return ResponseEntity.ok(contentServices.SearchContentTitleContaining(search));
         }
         catch (Exception e)
@@ -167,6 +221,30 @@ public class Rest_Controller {
         try
         {
             return ResponseEntity.ok(contentServices.GetTop30ByDate());
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @GetMapping(path = "/guest/Content/All")
+    public ResponseEntity<Object> GetAllApprovedContents()
+    {
+        try
+        {
+            return ResponseEntity.ok(contentServices.GetAllApprovedContent());
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @GetMapping(path = "/Content/Pending")
+    public ResponseEntity<Object> GetAllPendingContents()
+    {
+        try
+        {
+            return ResponseEntity.ok(contentServices.GetAllPendingContent(Get_CurrentSession_User()));
         }
         catch (Exception e)
         {
@@ -261,6 +339,7 @@ public class Rest_Controller {
     {
         try
         {
+            System.out.println("\n\n\tDEBUG LOGGING  "+putRequest+"\n\n\n");
             return ResponseEntity.ok(categoryServices.UpdateCategoryByID(Get_CurrentSession_User(),putRequest));
         }
         catch (Exception e)
@@ -364,6 +443,34 @@ public class Rest_Controller {
                 .orElseThrow(()->new IllegalStateException("Unauthorized User!"));
     }
 
+    @GetMapping(path = "/guest/User")
+    public ResponseEntity<Object> Get_User_By_Username(
+            @RequestParam(name = "username",required = true) String username
+    )
+    {
+        try
+        {
+            return ResponseEntity.ok(userServices.GetUserByUsername(username));
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping(path = "/User/All")
+    public ResponseEntity<Object> GetAllUser()
+    {
+        try
+        {
+            return ResponseEntity.ok(userServices.GetAllUser(Get_CurrentSession_User()));
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PutMapping(path = "/User")
     public ResponseEntity<Object> PutUser(
             @RequestBody PutRequest putRequest
@@ -375,21 +482,6 @@ public class Rest_Controller {
                     Get_CurrentSession_User(),
                     putRequest
             ));
-        }
-        catch (Exception e)
-        {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @PutMapping(path = "/auth/changePassword")
-    public ResponseEntity<Object> ChangeUserPassword(
-            @RequestBody ChangePasswordRequest changePasswordRequest
-            )
-    {
-        try
-        {
-            return ResponseEntity.ok(authenticationServices.changeUserPassword(changePasswordRequest));
         }
         catch (Exception e)
         {
@@ -415,17 +507,15 @@ public class Rest_Controller {
     //User--------
 
     //Todo: WebInformation-------------
-    @GetMapping(path = "/WI/all")
+    @GetMapping(path = "/guest/WI/all")
     public ResponseEntity<Object> GetFullWebInformation()
     {
         return ResponseEntity.ok(
-                webInformationServices.GetFullWeb_Information(
-                        Get_CurrentSession_User()
-                )
+                webInformationServices.GetFullWeb_Information()
         );
     }
 
-    @GetMapping(path = "/WI")
+    @GetMapping(path = "/guest/WI")
     public ResponseEntity<Object> GetWebInformation(
             @RequestParam(name = "name",required = false) String name,
             @RequestParam(name = "id",required = false) Long id
@@ -436,13 +526,13 @@ public class Rest_Controller {
             if(id!=null)
                 return ResponseEntity.ok(
                         webInformationServices.GetWeb_InformationByID(
-                                Get_CurrentSession_User(),id
+                                id
                         )
                 );
             else if(name!=null)
                 return ResponseEntity.ok(
                         webInformationServices.GetWeb_InformationByName(
-                                Get_CurrentSession_User(),name
+                                name
                         )
                 );
             else

@@ -7,6 +7,7 @@ import com.example.CustomBlog.content.Comment;
 import com.example.CustomBlog.content.Content;
 
 import com.example.CustomBlog.feedback.Feedback;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,6 +29,7 @@ public class User implements UserDetails {
         generator = "user_sq"
     )
     private long id;
+    @Column(nullable = false)
     private String Display_name;
     @Column(columnDefinition = "TEXT")
     private String Description;
@@ -40,12 +42,16 @@ public class User implements UserDetails {
     @Column(
             nullable = false
     )
+    @JsonIgnore
     private String password;
     @Column(
             nullable = false,
             unique = true
     )
     private String email;
+
+    @JsonIgnore
+    private String resetPassCode;
     @Enumerated(EnumType.STRING)
     private Role role;
     @OneToMany (fetch = FetchType.LAZY,cascade = CascadeType.ALL, mappedBy = "from_user")
@@ -139,7 +145,12 @@ public class User implements UserDetails {
         List<Asset> assetList=new ArrayList<>();
         for(LinkedHashMap linkedHashMap:objectList)
         {
-            assetList.add(new Asset((String)linkedHashMap.get("name"),(String)linkedHashMap.get("assetURL")));
+            assetList.add(
+                    new Asset(
+                            (String)linkedHashMap.get("name"),
+                            (String)linkedHashMap.get("assetURL"),
+                            (String) linkedHashMap.get("tag"))
+            );
         }
         for(Asset asset:assetList)
         {
@@ -203,5 +214,13 @@ public class User implements UserDetails {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getResetPassCode() {
+        return resetPassCode;
+    }
+
+    public void setResetPassCode(String resetPassCode) {
+        this.resetPassCode = resetPassCode;
     }
 }

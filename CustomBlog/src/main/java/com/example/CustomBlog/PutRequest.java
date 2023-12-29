@@ -35,4 +35,13 @@ public class PutRequest {
     public void setItemId(long itemId) {
         this.itemId = itemId;
     }
+
+    @Override
+    public String toString() {
+        return "PutRequest{" +
+                "itemId=" + itemId +
+                ", property='" + property + '\'' +
+                ", value=" + value +
+                '}';
+    }
 }

@@ -132,7 +132,12 @@ public class Content {
         List<Asset> assetList=new ArrayList<>();
         for(LinkedHashMap linkedHashMap:objectList)
         {
-            assetList.add(new Asset((String)linkedHashMap.get("name"),(String)linkedHashMap.get("assetURL")));
+            assetList.add(
+                    new Asset(
+                            (String)linkedHashMap.get("name"),
+                            (String)linkedHashMap.get("assetURL"),
+                            (String)linkedHashMap.get("tag")
+            ));
         }
         for(Asset asset:assetList)
         {

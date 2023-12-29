@@ -23,14 +23,30 @@ public class User_Services {
         return userRepository.findAll();
     }
 
-    public Optional<User> GetUserByID(long id)
+    public User GetUserByID(long id)
     {
-        return userRepository.findById(id);
+        return userRepository
+                .findById(id)
+                .orElseThrow(
+                        ()-> new IllegalStateException(
+                                "User with id "+id+" does not exist in database!"
+                        )
+                );
     }
     public Optional<User> GetUserByUsername(String username)
     {
 
         return userRepository.findByUsername(username);
+    }
+
+    public User GetUserByEmail(String email)
+    {
+        return userRepository.findByEmail(email)
+                .orElseThrow(
+                        ()->new IllegalStateException(
+                                "User with email "+email+ "does not exist in database!"
+                        )
+                );
     }
 
     public List<Content> GetUserContents(User user)
@@ -90,6 +106,24 @@ public class User_Services {
             throw new IllegalStateException("Unauthorized User");
         }
         return user;
+    }
+
+    public List<User> GetAllUser(User user)
+    {
+        hasAdminPrivileges(user);
+        return userRepository.findAll();
+    }
+    @Transactional
+    public void setUserResetPassCode(String passCode,Long user_id)
+    {
+        User user=GetUserByID(user_id);
+        user.setResetPassCode(passCode);
+    }
+    @Transactional
+    public void nullUserResetPassCode(Long user_id)
+    {
+        User user=GetUserByID(user_id);
+        user.setResetPassCode(null);
     }
     public void Cleartable(User user)
     {
